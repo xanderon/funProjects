@@ -11,9 +11,25 @@
       background: #fff; padding: 2.5rem; border-radius: 18px;
       box-shadow: 0 10px 30px rgba(0,0,0,.08); text-align: center; width: min(520px, 92vw);
     }
+    .note-wrap {
+      display: grid; place-items: center; gap: .45rem; margin: .2em 0 .5em;
+    }
     .note {
       font-size: clamp(64px, 12vw, 120px); font-weight: 800; letter-spacing: .02em;
-      margin: .2em 0 .5em; line-height: 1;
+      line-height: 1;
+    }
+    .sequence {
+      font-size: 1.1rem; font-weight: 600; letter-spacing: .08em;
+      background: rgba(26,115,232,.08); color: #1a73e8;
+      padding: .6rem 1.4rem; border-radius: 999px;
+      transition: opacity .2s ease, transform .2s ease;
+      opacity: 0; visibility: hidden; transform: translateY(-6px);
+      pointer-events: none;
+    }
+    .sequence[data-ready="false"] { display: none; }
+    .note-wrap:hover .sequence,
+    .note-wrap:focus-within .sequence {
+      opacity: 1; visibility: visible; transform: translateY(0);
     }
     button {
       font-size: 1.1rem; padding: .9rem 1.2rem; border-radius: 12px; border: 0; cursor: pointer;
@@ -25,9 +41,12 @@
 </head>
 <body>
   <div class="card">
-    <div id="note" class="note">—</div>
+    <div class="note-wrap" tabindex="0">
+      <div id="note" class="note">—</div>
+      <div id="sequence" class="sequence" data-ready="false"></div>
+    </div>
     <button id="btn">Alege o notă 🎵</button>
-    <div class="hint">Apasă butonul sau <strong>Space</strong> pentru o notă nouă.</div>
+    <div class="hint">Apasă butonul sau <strong>Space</strong> pentru o notă nouă.<br/>Mută cursorul peste nota afișată pentru a vedea continuarea.</div>
   </div>
 
   <script>
@@ -35,13 +54,27 @@
     const NOTES = ["Do","Re","Mi","Fa","Sol","La","Si","Do"];
     const noteEl = document.getElementById("note");
     const btn = document.getElementById("btn");
+    const sequenceEl = document.getElementById("sequence");
     let last = null;
+
+    function updateSequence(note) {
+      const idx = NOTES.indexOf(note);
+      if (idx === -1) {
+        sequenceEl.dataset.ready = "false";
+        sequenceEl.textContent = "";
+        return;
+      }
+      const progression = NOTES.slice(idx).join(" · ");
+      sequenceEl.textContent = progression;
+      sequenceEl.dataset.ready = "true";
+    }
 
     function pickRandom() {
       let i;
       do { i = Math.floor(Math.random() * NOTES.length); } while (NOTES[i] === last && NOTES.length > 1);
       last = NOTES[i];
       noteEl.textContent = NOTES[i];
+      updateSequence(NOTES[i]);
     }
 
     btn.addEventListener("click", pickRandom);
